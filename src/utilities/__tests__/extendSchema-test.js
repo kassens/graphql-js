@@ -12,7 +12,6 @@ import { extendSchema } from '../extendSchema';
 import { parse, print } from '../../language';
 import { printSchema } from '../schemaPrinter';
 import { Kind } from '../../language/kinds';
-import { graphqlSync } from '../../';
 import {
   GraphQLSchema,
   GraphQLObjectType,
@@ -127,19 +126,6 @@ describe('extendSchema', () => {
     expect(extendedSchema).to.not.equal(testSchema);
     expect(printSchema(extendedSchema)).to.contain('newField');
     expect(printSchema(testSchema)).to.not.contain('newField');
-  });
-
-  it('can be used for limited execution', () => {
-    const extendedSchema = extendTestSchema(`
-      extend type Query {
-        newField: String
-      }
-    `);
-
-    const result = graphqlSync(extendedSchema, '{ newField }', {
-      newField: 123,
-    });
-    expect(result.data).to.deep.equal({ newField: '123' });
   });
 
   it('can describe the extended fields', () => {

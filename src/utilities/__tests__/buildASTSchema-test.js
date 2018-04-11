@@ -13,7 +13,6 @@ import { buildASTSchema, buildSchema } from '../buildASTSchema';
 import dedent from '../../jsutils/dedent';
 import { Kind } from '../../language/kinds';
 import {
-  graphqlSync,
   validateSchema,
   GraphQLSkipDirective,
   GraphQLIncludeDirective,
@@ -34,34 +33,6 @@ function cycleOutput(body, options) {
 }
 
 describe('Schema Builder', () => {
-  it('can use built schema for limited execution', () => {
-    const schema = buildASTSchema(
-      parse(`
-        type Query {
-          str: String
-        }
-      `),
-    );
-
-    const result = graphqlSync(schema, '{ str }', { str: 123 });
-    expect(result.data).to.deep.equal({ str: '123' });
-  });
-
-  it('can build a schema directly from the source', () => {
-    const schema = buildSchema(`
-      type Query {
-        add(x: Int, y: Int): Int
-      }
-    `);
-
-    const root = {
-      add: ({ x, y }) => x + y,
-    };
-    expect(graphqlSync(schema, '{ add(x: 34, y: 55) }', root)).to.deep.equal({
-      data: { add: 89 },
-    });
-  });
-
   it('Simple type', () => {
     const body = dedent`
       type Query {
@@ -354,129 +325,6 @@ describe('Schema Builder', () => {
     `;
     const output = cycleOutput(body);
     expect(output).to.equal(body);
-  });
-
-  it('Specifying Union type using __typename', () => {
-    const schema = buildSchema(dedent`
-      type Query {
-        fruits: [Fruit]
-      }
-
-      union Fruit = Apple | Banana
-
-      type Apple {
-        color: String
-      }
-
-      type Banana {
-        length: Int
-      }
-    `);
-
-    const query = `
-      {
-        fruits {
-          ... on Apple {
-            color
-          }
-          ... on Banana {
-            length
-          }
-        }
-      }
-    `;
-
-    const root = {
-      fruits: [
-        {
-          color: 'green',
-          __typename: 'Apple',
-        },
-        {
-          length: 5,
-          __typename: 'Banana',
-        },
-      ],
-    };
-
-    expect(graphqlSync(schema, query, root)).to.deep.equal({
-      data: {
-        fruits: [
-          {
-            color: 'green',
-          },
-          {
-            length: 5,
-          },
-        ],
-      },
-    });
-  });
-
-  it('Specifying Interface type using __typename', () => {
-    const schema = buildSchema(dedent`
-      type Query {
-        characters: [Character]
-      }
-
-      interface Character {
-        name: String!
-      }
-
-      type Human implements Character {
-        name: String!
-        totalCredits: Int
-      }
-
-      type Droid implements Character {
-        name: String!
-        primaryFunction: String
-      }
-    `);
-
-    const query = `
-      {
-        characters {
-          name
-          ... on Human {
-            totalCredits
-          }
-          ... on Droid {
-            primaryFunction
-          }
-        }
-      }
-    `;
-
-    const root = {
-      characters: [
-        {
-          name: 'Han Solo',
-          totalCredits: 10,
-          __typename: 'Human',
-        },
-        {
-          name: 'R2-D2',
-          primaryFunction: 'Astromech',
-          __typename: 'Droid',
-        },
-      ],
-    };
-
-    expect(graphqlSync(schema, query, root)).to.deep.equal({
-      data: {
-        characters: [
-          {
-            name: 'Han Solo',
-            totalCredits: 10,
-          },
-          {
-            name: 'R2-D2',
-            primaryFunction: 'Astromech',
-          },
-        ],
-      },
-    });
   });
 
   it('Custom Scalar', () => {

@@ -31,10 +31,6 @@
  *     import { parse } from 'graphql/language';
  */
 
-// The primary entry point into fulfilling a GraphQL request.
-export type { GraphQLArgs } from './graphql';
-export { graphql, graphqlSync } from './graphql';
-
 // Create and operate on GraphQL type definitions and schema.
 export {
   GraphQLSchema,
@@ -253,18 +249,6 @@ export type {
   DirectiveLocationEnum,
 } from './language';
 
-// Execute GraphQL queries.
-export {
-  execute,
-  defaultFieldResolver,
-  responsePathAsArray,
-  getDirectiveValues,
-} from './execution';
-
-export type { ExecutionArgs, ExecutionResult } from './execution';
-
-export { subscribe, createSourceEventStream } from './subscription';
-
 // Validate GraphQL queries.
 export {
   validate,
@@ -314,8 +298,6 @@ export {
   introspectionQuery,
   // Gets the target Operation from a Document
   getOperationAST,
-  // Convert a GraphQLSchema to an IntrospectionQuery
-  introspectionFromSchema,
   // Build a GraphQLSchema from an introspection result.
   buildClientSchema,
   // Build a GraphQLSchema from a parsed GraphQL Schema language AST.
